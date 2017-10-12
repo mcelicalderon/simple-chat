@@ -1,3 +1,13 @@
-# Place all the behaviors and hooks related to the matching controller here.
-# All this logic will automatically be available in application.js.
-# You can use CoffeeScript in this file: http://coffeescript.org/
+$('#connect-image').on 'click' , =>
+  App.chat = App.cable.subscriptions.create { channel: 'ChatChannel', username: $('#username-input').value },
+    connected: ->
+      alert 'Connected'
+
+    disconnected: ->
+      # Called when the subscription has been terminated by the server
+
+    received: (data) ->
+      alert(data.body)
+
+    send_message: ->
+      @perform 'send_message'
