@@ -4,7 +4,7 @@ class HomeController < ApplicationController
 
   def test
     ActionCable.server.broadcast(
-      "some_channel",
+      "sameroom",
       sent_by: 'me',
       body: 'This is a cool chat app.'
     )

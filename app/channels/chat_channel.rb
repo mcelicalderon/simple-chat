@@ -1,12 +1,14 @@
 class ChatChannel < ApplicationCable::Channel
   def subscribed
-    stream_from "some_channel"
+    stream_from 'sameroom'
   end
 
   def unsubscribed
     # Any cleanup needed when channel is unsubscribed
   end
 
-  def send_message
+  def receive(data)
+    binding.pry
+    broadcast_to('sameroom', data)
   end
 end

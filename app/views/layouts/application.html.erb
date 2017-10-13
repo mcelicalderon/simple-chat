@@ -23,4 +23,27 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
           integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
           crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.loadtemplate/1.5.10/jquery.loadTemplate.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.1/moment.min.js"></script>
+  <!-- HTML Templates -->
+    <script type="text/html" id="message-template">
+      <div class="row no-margin">
+        <div class="row no-margin message-info-row" style="">
+          <div class="col-md-8 left-align"><p data-content="username" class="message-username"></p></div>
+          <div class="col-md-4 right-align"><span data-content="date" class="message-date"></span></div>
+        </div>
+        <div class="row no-margin message-content-row">
+          <div style="" class="col-md-12"><p data-content="body" class="message-body"></p></div>
+        </div>
+      </div>
+    </script>
+    <script type="text/html" id="channel-template">
+      <div class="col-md-12">
+        <p class="channel-element" data-content="channelName"></p>
+      </div>
+    </script>
+    <script type="text/html" id="member-notification-template">
+      <p class="member-status" data-content="status"></p>
+    </script>
+    <!-- JavaScript -->
 </html>
