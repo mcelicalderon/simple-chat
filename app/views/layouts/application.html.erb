@@ -16,6 +16,18 @@
 
   <body>
     <div class="container-fluid">
+      <% if notice.present? %>
+        <div class="alert alert-success alert-dismissable">
+          <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+          <%= notice %>
+        </div>
+      <% end %>
+      <% if alert.present? %>
+        <div class="alert alert-info alert-dismissable">
+          <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+          <%= alert %>
+        </div>
+      <% end %>
       <%= yield %>
     </div>
   </body>
