@@ -1,5 +1,7 @@
 language: ruby
 rvm:
   - 2.4.2
+before_script:
+  - psql -c 'create database simple_chat_test;' -U postgres
 script:
   - bundle exec rspec
