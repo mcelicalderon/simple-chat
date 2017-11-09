@@ -8,7 +8,6 @@ class ChatChannel < ApplicationCable::Channel
   end
 
   def receive(data)
-    binding.pry
     broadcast_to('sameroom', data)
   end
 end
