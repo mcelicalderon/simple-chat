@@ -8,6 +8,11 @@ class ChatChannel < ApplicationCable::Channel
   end
 
   def receive(data)
-    broadcast_to('sameroom', data)
+    ActionCable.server.broadcast(
+      "sameroom",
+      sent_by: current_user.full_name,
+      body: data['body'],
+      timestamp: Time.now
+    )
   end
 end

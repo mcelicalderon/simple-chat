@@ -19,11 +19,11 @@ handleUsernameInputKeypress = (event) ->
 
 handleInputTextKeypress = (event) ->
   if event.keyCode == 13
-    tc.currentChannel.sendMessage $(this).val()
+    App.chatChannel.send({ sent_by: "me!", body: $(this).val() })
     event.preventDefault()
     $(this).val ''
   else
-    notifyTyping()
+    # notifyTyping()
   return
 
 connectClientWithUsername = ->
@@ -33,7 +33,15 @@ connectClientWithUsername = ->
     alert 'Username cannot be empty'
     return
   tc.username = usernameText
-  fetchAccessToken tc.username, connectMessagingClient
+  App.chatChannel = App.cable.subscriptions.create { channel: 'ChatChannel' },
+    connected: ->
+      updateConnectedUI()
+
+    disconnected: ->
+      # Called when the subscription has been terminated by the server
+
+    received: (data) ->
+      addMessageToList(data)
   return
 
 fetchAccessToken = (username, handler) ->
@@ -76,6 +84,7 @@ updateConnectedUI = ->
   $connectPanel.addClass('connected').removeClass 'disconnected'
   $inputText.addClass 'with-shadow'
   $typingRow.addClass('connected').removeClass 'disconnected'
+  $inputText.prop('disabled', false).focus()
   return
 
 initChannel = (channel) ->
@@ -291,13 +300,13 @@ tc.loadMessages = ->
     return
   return
 
-tc.addMessageToList = (message) ->
+addMessageToList = (data) ->
   rowDiv = $('<div>').addClass('row no-margin')
   rowDiv.loadTemplate $('#message-template'),
-    username: message.author
-    date: dateFormatter.getTodayDate(message.timestamp)
-    body: message.body
-  if message.author == tc.username
+    username: data.sent_by
+    date: App.DateFormatter.getTodayDate(data.timestamp)
+    body: data.body
+  if data.sent_by == tc.username
     rowDiv.addClass 'own-message'
   tc.$messageList.append rowDiv
   scrollToMessageListBottom()
@@ -313,12 +322,4 @@ tc.sortChannelsByName = (channels) ->
 
 
 $('#connect-image').on 'click' , =>
-  App.chatChannel = App.cable.subscriptions.create { channel: 'ChatChannel' },
-    connected: ->
-      alert($('#username-input').val())
-
-    disconnected: ->
-      # Called when the subscription has been terminated by the server
-
-    received: (data) ->
-      alert(data.body)
+  connectClientWithUsername()

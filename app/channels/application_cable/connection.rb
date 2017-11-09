@@ -17,7 +17,6 @@ module ApplicationCable
     end
 
     def user_id
-      binding.pry
       cookies.encrypted[:_simple_chat_session]['warden.user.user.key']
              .first
              .first
