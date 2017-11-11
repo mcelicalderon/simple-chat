@@ -25,7 +25,8 @@ body {
   height: 100%;
 }
 #container {
-  height: 85vh;
+  max-height: 85vh;
+  height: 80vh;
 }
 #header {
   margin: auto;
@@ -52,7 +53,7 @@ body {
   height: 92%;
 }
 #message-list.disconnected {
-  height: 80%;
+  height: 95%;
 }
 #connect-panel {
   height: 15%;

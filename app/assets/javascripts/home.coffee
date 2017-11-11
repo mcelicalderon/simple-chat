@@ -1,7 +1,7 @@
 tc = {}
-GENERAL_CHANNEL_UNIQUE_NAME = 'general'
-GENERAL_CHANNEL_NAME = 'General Channel'
-MESSAGES_HISTORY_LIMIT = 50
+currentUserId = undefined
+currentUserFullName = undefined
+selectedUserId = undefined
 $channelList = undefined
 $inputText = undefined
 $usernameInput = undefined
@@ -12,27 +12,23 @@ $newChannelInput = undefined
 $typingRow = undefined
 $typingPlaceholder = undefined
 
-handleUsernameInputKeypress = (event) ->
-  if event.keyCode == 13
-    connectClientWithUsername()
-  return
-
 handleInputTextKeypress = (event) ->
   if event.keyCode == 13
-    App.chatChannel.send({ sent_by: "me!", body: $(this).val() })
+    App.chatChannel.send({ body: $(this).val(), to_user_id: selectedUserId })
+    addMessageToList({
+      timestamp: moment.format
+      body: $(this).val(),
+      sent_by_full_name: currentUserFullName,
+      sent_by: currentUserId
+    })
+
     event.preventDefault()
     $(this).val ''
   else
     # notifyTyping()
   return
 
-connectClientWithUsername = ->
-  usernameText = $usernameInput.val()
-  $usernameInput.val ''
-  if usernameText == ''
-    alert 'Username cannot be empty'
-    return
-  tc.username = usernameText
+connectClient = ->
   App.chatChannel = App.cable.subscriptions.create { channel: 'ChatChannel' },
     connected: ->
       updateConnectedUI()
@@ -44,52 +40,10 @@ connectClientWithUsername = ->
       addMessageToList(data)
   return
 
-fetchAccessToken = (username, handler) ->
-  $.post('/token', {
-    identity: username
-    device: 'browser'
-  }, null, 'json').done((response) ->
-    handler response.token
-    return
-  ).fail (error) ->
-    console.log 'Failed to fetch the Access Token with error: ' + error
-    return
-  return
-
-connectMessagingClient = (token) ->
-  # Initialize the IP messaging client
-  tc.accessManager = new (Twilio.AccessManager)(token)
-  tc.messagingClient = new (Twilio.Chat.Client)(token)
-  tc.messagingClient.initialize().then ->
-    updateConnectedUI()
-    tc.loadChannelList tc.joinGeneralChannel
-    tc.messagingClient.on 'channelAdded', tc.loadChannelList
-    tc.messagingClient.on 'channelRemoved', tc.loadChannelList
-    tc.messagingClient.on 'tokenExpired', refreshToken
-    return
-  return
-
-refreshToken = ->
-  fetchAccessToken tc.username, setNewToken
-  return
-
-setNewToken = (tokenResponse) ->
-  tc.accessManager.updateToken tokenResponse.token
-  return
-
 updateConnectedUI = ->
-  $('#username-span').text tc.username
-  $statusRow.addClass('connected').removeClass 'disconnected'
-  tc.$messageList.addClass('connected').removeClass 'disconnected'
-  $connectPanel.addClass('connected').removeClass 'disconnected'
   $inputText.addClass 'with-shadow'
-  $typingRow.addClass('connected').removeClass 'disconnected'
   $inputText.prop('disabled', false).focus()
   return
-
-initChannel = (channel) ->
-  console.log 'Initialized channel ' + channel.friendlyName
-  tc.messagingClient.getChannelBySid channel.sid
 
 joinChannel = (_channel) ->
   _channel.join().then (joinedChannel) ->
@@ -101,33 +55,8 @@ joinChannel = (_channel) ->
 
 initChannelEvents = ->
   console.log tc.currentChannel.friendlyName + ' ready.'
-  tc.currentChannel.on 'messageAdded', tc.addMessageToList
-  tc.currentChannel.on 'typingStarted', showTypingStarted
-  tc.currentChannel.on 'typingEnded', hideTypingStarted
-  tc.currentChannel.on 'memberJoined', notifyMemberJoined
-  tc.currentChannel.on 'memberLeft', notifyMemberLeft
   $inputText.prop('disabled', false).focus()
   return
-
-setupChannel = (channel) ->
-  leaveCurrentChannel().then(->
-    initChannel channel
-  ).then((_channel) ->
-    joinChannel _channel
-  ).then initChannelEvents
-
-leaveCurrentChannel = ->
-  if tc.currentChannel
-    tc.currentChannel.leave().then (leftChannel) ->
-      console.log 'left ' + leftChannel.friendlyName
-      leftChannel.removeListener 'messageAdded', tc.addMessageToList
-      leftChannel.removeListener 'typingStarted', showTypingStarted
-      leftChannel.removeListener 'typingEnded', hideTypingStarted
-      leftChannel.removeListener 'memberJoined', notifyMemberJoined
-      leftChannel.removeListener 'memberLeft', notifyMemberLeft
-      return
-  else
-    Promise.resolve()
 
 notifyMemberJoined = (member) ->
   notify member.identity + ' joined the channel'
@@ -210,15 +139,16 @@ deleteCurrentChannel = ->
     return
   return
 
+addChannelEvents = ->
+  $('.channel-element').on('click', selectChannel)
+
 selectChannel = (event) ->
   target = $(event.target)
-  channelSid = target.data().sid
-  selectedChannel = tc.channelArray.filter((channel) ->
-    channel.sid == channelSid
-  )[0]
-  if selectedChannel == tc.currentChannel
-    return
-  setupChannel selectedChannel
+  selectedUserId = target.data().userid
+  if tc.currentChannelContainer != undefined
+    tc.currentChannelContainer.removeClass('selected-channel').addClass('unselected-channel');
+  tc.currentChannelContainer = target
+  tc.currentChannelContainer.removeClass('unselected-channel').addClass('selected-channel');
   return
 
 disconnectClient = ->
@@ -234,6 +164,8 @@ disconnectClient = ->
   return
 
 $(document).ready ->
+  currentUserId = $('#user_id').val()
+  currentUserFullName = $('#user_full_name').val()
   tc.$messageList = $('#message-list')
   $channelList = $('#channel-list')
   $inputText = $('#input-text')
@@ -244,19 +176,16 @@ $(document).ready ->
   $newChannelInput = $('#new-channel-input')
   $typingRow = $('#typing-row')
   $typingPlaceholder = $('#typing-placeholder')
-  $usernameInput.focus()
-  $usernameInput.on 'keypress', handleUsernameInputKeypress
   $inputText.on 'keypress', handleInputTextKeypress
   $newChannelInput.on 'keypress', tc.handleNewChannelInputKeypress
-  $('#connect-image').on 'click', connectClientWithUsername
   $('#add-channel-image').on 'click', showAddChannelInput
-  $('#leave-span').on 'click', disconnectClient
-  $('#delete-channel-span').on 'click', deleteCurrentChannel
+  addChannelEvents()
+  connectClient()
   return
-notifyTyping = (->
+
+notifyTyping = ->
   tc.currentChannel.typing()
   return
-)
 
 tc.handleNewChannelInputKeypress = (event) ->
   if event.keyCode == 13
@@ -303,23 +232,11 @@ tc.loadMessages = ->
 addMessageToList = (data) ->
   rowDiv = $('<div>').addClass('row no-margin')
   rowDiv.loadTemplate $('#message-template'),
-    username: data.sent_by
+    username: data.sent_by_full_name
     date: App.DateFormatter.getTodayDate(data.timestamp)
     body: data.body
-  if data.sent_by == tc.username
+  if data.sent_by == currentUserId
     rowDiv.addClass 'own-message'
   tc.$messageList.append rowDiv
   scrollToMessageListBottom()
   return
-
-tc.sortChannelsByName = (channels) ->
-  channels.sort (a, b) ->
-    if a.friendlyName == GENERAL_CHANNEL_NAME
-      return -1
-    if b.friendlyName == GENERAL_CHANNEL_NAME
-      return 1
-    a.friendlyName.localeCompare b.friendlyName
-
-
-$('#connect-image').on 'click' , =>
-  connectClientWithUsername()
