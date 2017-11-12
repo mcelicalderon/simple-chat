@@ -1,0 +1,16 @@
+{
+  "name": "Simple Chat",
+  "description": "Simple chat app using ActionCable",
+  "success_url": "/",
+  "addons": ["heroku-postgresql:hobby-dev", "heroku-redis:hobby-dev"],
+  "env": {
+    "RAILS_ENV": "production",
+    "COOKIE_SECRET": {
+            "description": "This gets generated",
+            "generator": "secret"
+    },
+  },
+  "scripts": {
+    "postdeploy": "bundle exec rails db:migrate"
+  }
+}
