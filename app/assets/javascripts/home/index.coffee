@@ -38,7 +38,8 @@ connectClient = ->
       # Called when the subscription has been terminated by the server
 
     received: (data) ->
-      addMessageToList(data)
+      if data.sent_by == selectedUserId
+        addMessageToList(data)
   return
 
 updateConnectedUI = ->
@@ -147,10 +148,16 @@ showChatWindow = ->
   $('#chat-window').show()
   $inputText.focus()
 
+clearChatWindow = ->
+  tc.$messageList.html('')
+  $inputText.focus()
+
 selectChannel = (event) ->
   if chatWindowHidden
     showChatWindow()
     chatWindowHidden = false
+  else
+    clearChatWindow()
   target = $(event.target)
   selectedUserId = target.data().userid
   if tc.currentChannelContainer != undefined
