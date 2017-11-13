@@ -11,6 +11,7 @@ $newChannelInputRow = undefined
 $newChannelInput = undefined
 $typingRow = undefined
 $typingPlaceholder = undefined
+chatWindowHidden = true
 
 handleInputTextKeypress = (event) ->
   if event.keyCode == 13
@@ -41,7 +42,6 @@ connectClient = ->
   return
 
 updateConnectedUI = ->
-  $inputText.addClass 'with-shadow'
   $inputText.prop('disabled', false).focus()
   return
 
@@ -142,7 +142,15 @@ deleteCurrentChannel = ->
 addChannelEvents = ->
   $('.channel-element').on('click', selectChannel)
 
+showChatWindow = ->
+  $('#welcome-window').hide()
+  $('#chat-window').show()
+  $inputText.focus()
+
 selectChannel = (event) ->
+  if chatWindowHidden
+    showChatWindow()
+    chatWindowHidden = false
   target = $(event.target)
   selectedUserId = target.data().userid
   if tc.currentChannelContainer != undefined
