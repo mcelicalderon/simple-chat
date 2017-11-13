@@ -1,3 +1,7 @@
+<% content_for :javascripts do %>
+  <%= javascript_include_tag 'home/index', 'data-turbolinks-track': 'reload' %>
+<% end %>
+
 <%= hidden_field(:user, :id, value: current_user.id) %>
 <%= hidden_field(:user, :full_name, value: current_user.full_name) %>
 <div class="container-fluid">
