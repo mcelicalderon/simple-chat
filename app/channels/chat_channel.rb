@@ -21,7 +21,7 @@ class ChatChannel < ApplicationCable::Channel
       sent_by: current_user.id,
       sent_by_full_name: current_user.full_name,
       body: data['body'],
-      timestamp: Time.now
+      timestamp: Time.zone.now
     }
   end
 

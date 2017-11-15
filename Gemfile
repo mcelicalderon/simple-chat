@@ -46,6 +46,7 @@ group :test do
   gem 'rails-controller-testing'
   gem 'factory_girl_rails'
   gem 'rspec-activemodel-mocks'
+  gem 'action-cable-testing'
 end
 
 group :development do
