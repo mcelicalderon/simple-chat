@@ -12,6 +12,11 @@ class ChatChannel < ApplicationCable::Channel
       "user_#{to_user_id(data)}",
       message_data(data)
     )
+    Message.create(
+      body: data['body'],
+      recipient_id: to_user_id(data),
+      author_id:    current_user.id
+    )
   end
 
   private
